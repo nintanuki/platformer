@@ -68,6 +68,8 @@ class Player(pygame.sprite.Sprite):
         self.on_ground = False # Reset on_ground before checking collisions
 
         for solid_rect in self.game.collision.check_collision(self.rect):
+            # Only resolve horizontally if the tile is actually to the side of the player.
+            # Without this check, floor tiles would also trigger horizontal resolution.
             if self.rect.centery > solid_rect.top and self.rect.centery < solid_rect.bottom:
                 if self.rect.right > solid_rect.left and self.rect.left < solid_rect.left:
                     self.rect.right = solid_rect.left
