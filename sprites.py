@@ -10,49 +10,43 @@ class Player(pygame.sprite.Sprite):
         self.rect.topleft = (x, y)
         self.velocity_y = PlayerSettings.INITIAL_VELOCITY_Y
         self.on_ground = False
-        self.jump_was_pressed = False
 
-    def update(self, joysticks=None):
+    def get_input(self, joysticks):
         keys = pygame.key.get_pressed()
-        move_left = keys[pygame.K_LEFT]
-        move_right = keys[pygame.K_RIGHT]
-        jump_pressed = keys[pygame.K_SPACE]
-
-        # Merge controller input from all connected joysticks.
-        if joysticks:
-            for joystick in joysticks:
-                dpad_x = 0
-                if joystick.get_numhats() > ControllerSettings.DPAD_INDEX:
-                    dpad_x = joystick.get_hat(ControllerSettings.DPAD_INDEX)[0]
-
-                axis_x = (
-                    joystick.get_axis(ControllerSettings.MOVE_AXIS_X)
-                    if joystick.get_numaxes() > ControllerSettings.MOVE_AXIS_X
-                    else 0
-                )
-                move_left = move_left or dpad_x < 0 or axis_x < -ControllerSettings.AXIS_DEADZONE
-                move_right = move_right or dpad_x > 0 or axis_x > ControllerSettings.AXIS_DEADZONE
-
-                if joystick.get_numbuttons() > ControllerSettings.A_BUTTON:
-                    jump_pressed = jump_pressed or bool(joystick.get_button(ControllerSettings.A_BUTTON))
-
-        jump_just_pressed = jump_pressed and not self.jump_was_pressed
-
-        if move_left:
+ 
+        # --- Collect controller state in a single pass ---
+        joystick_x = 0.0 # Default to no horizontal input
+        jump_held = False # Track if any joystick has the jump button held
+ 
+        for joy in joysticks:
+            x = joy.get_axis(ControllerSettings.MOVE_AXIS_X)
+            # Ignore stick drift when the player isn't touching the controller
+            if abs(x) > ControllerSettings.AXIS_DEADZONE:
+                joystick_x = x
+            jump_held |= joy.get_button(ControllerSettings.A_BUTTON)
+ 
+        # --- Horizontal movement ---
+        if keys[pygame.K_LEFT] or joystick_x < 0:
             self.rect.x -= PlayerSettings.LEFT_SPEED
-        if move_right:
+        if keys[pygame.K_RIGHT] or joystick_x > 0:
             self.rect.x += PlayerSettings.RIGHT_SPEED
-        if jump_just_pressed and self.on_ground:
+ 
+        # --- Jump ---
+        # Check if jump is pressed and player is on the ground
+        # This is to prevent double jumps (maybe a powerup can disable this later)
+        if (keys[pygame.K_SPACE] or jump_held) and self.on_ground:
             self.velocity_y = PlayerSettings.JUMP_STRENGTH
             self.on_ground = False
-
-        self.velocity_y += PlayerSettings.GRAVITY  # Gravity
-        self.rect.y += int(self.velocity_y)
-
+ 
+        # --- Gravity and vertical position ---
+        self.velocity_y += PlayerSettings.GRAVITY
+        self.rect.y += self.velocity_y
+ 
         # Floor collision
         if self.rect.bottom >= ScreenSettings.HEIGHT:
             self.rect.bottom = ScreenSettings.HEIGHT
             self.velocity_y = PlayerSettings.INITIAL_VELOCITY_Y
             self.on_ground = True
 
-        self.jump_was_pressed = jump_pressed
+    def update(self, joysticks):
+        self.get_input(joysticks)
