@@ -1,12 +1,14 @@
+class TileSettings:
+    SIZE = 16
+    COLUMMS = 20
+    ROWS = 25
+
 class ScreenSettings:
-        SCALE = 1
-        TILE_SIZE = 16
-        COLUMNS = 20
-        ROWS = 25
-        WIDTH = TILE_SIZE * COLUMNS * SCALE
-        HEIGHT = TILE_SIZE * ROWS * SCALE
-        RESOLUTION = (WIDTH, HEIGHT)
-        FPS = 60
+    SCALE = 1 # in case we want to use 32x32 sprites later, just change this to 2
+    WIDTH = TileSettings.SIZE * TileSettings.COLUMMS * SCALE
+    HEIGHT = TileSettings.SIZE * TileSettings.ROWS * SCALE
+    RESOLUTION = (WIDTH, HEIGHT)
+    FPS = 60
 
 class ColorSettings:
     BLACK = (0, 0, 0)
@@ -16,7 +18,7 @@ class ColorSettings:
     BLUE = (0, 0, 255)
 
 class PlayerSettings:
-    WIDTH, HEIGHT = ScreenSettings.TILE_SIZE, ScreenSettings.TILE_SIZE
+    WIDTH, HEIGHT = TileSettings.SIZE, TileSettings.SIZE
     COLOR = ColorSettings.RED
     GRAVITY = 0.5
     JUMP_STRENGTH = -10
@@ -25,9 +27,9 @@ class PlayerSettings:
     RIGHT_SPEED = 5
 
 class ControllerSettings:
-    DPAD_INDEX = 0
-    MOVE_AXIS_X = 0
-    AXIS_DEADZONE = 0.25
+    DPAD_INDEX = 0 # Assuming the first hat is the d-pad
+    MOVE_AXIS_X = 0 # Left stick horizontal axis
+    AXIS_DEADZONE = 0.25 # Deadzone for analog stick to prevent drift
 
     A_BUTTON = 0
     B_BUTTON = 1
