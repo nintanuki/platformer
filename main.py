@@ -5,6 +5,8 @@ import sys
 
 from settings import ControllerSettings, ScreenSettings, PlayerSettings
 from sprites import Player
+from render import RenderManager
+from tile_maps import MAP_01
 
 class GameManager:
     def __init__(self):
@@ -14,7 +16,8 @@ class GameManager:
         self.clock = pygame.time.Clock()
         pygame.display.set_caption("Platformer")
 
-        self.player = Player(100, ScreenSettings.HEIGHT - PlayerSettings.HEIGHT)
+        self.render_manager = RenderManager(self.screen)
+        self.player = Player(*PlayerSettings.INITIAL_POSITION)
 
     def setup_controllers(self):
         """Initialize joysticks and store them in a list for later use."""
@@ -45,6 +48,9 @@ class GameManager:
             # Update and draw player
             self.player.update(self.joysticks)
             self.screen.blit(self.player.image, self.player.rect)
+
+            # Draw the map
+            self.render_manager.draw_map(MAP_01)
 
             pygame.display.flip()
             self.clock.tick(60)

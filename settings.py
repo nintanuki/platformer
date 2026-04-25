@@ -1,11 +1,11 @@
 class TileSettings:
     SIZE = 16
-    COLUMMS = 20
+    COLUMNS = 20
     ROWS = 25
 
 class ScreenSettings:
     SCALE = 1 # in case we want to use 32x32 sprites later, just change this to 2
-    WIDTH = TileSettings.SIZE * TileSettings.COLUMMS * SCALE
+    WIDTH = TileSettings.SIZE * TileSettings.COLUMNS * SCALE
     HEIGHT = TileSettings.SIZE * TileSettings.ROWS * SCALE
     RESOLUTION = (WIDTH, HEIGHT)
     FPS = 60
@@ -26,6 +26,10 @@ class PlayerSettings:
     LEFT_SPEED = 5
     RIGHT_SPEED = 5
 
+    START_POS_X = 1 * TileSettings.SIZE
+    START_POS_Y = 23 * TileSettings.SIZE
+    INITIAL_POSITION = (START_POS_X, START_POS_Y)
+
 class ControllerSettings:
     DPAD_INDEX = 0 # Assuming the first hat is the d-pad
     MOVE_AXIS_X = 0 # Left stick horizontal axis
@@ -39,3 +43,6 @@ class ControllerSettings:
     R1_BUTTON = 5
     START_BUTTON = 7
     SELECT_BUTTON = 6
+
+class AssetPaths:
+    TILE_WALL = 'graphics/tiles/tile_0014.png'
