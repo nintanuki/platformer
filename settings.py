@@ -1,6 +1,10 @@
 class ScreenSettings:
-        WIDTH = 600
-        HEIGHT = 800
+        SCALE = 1
+        TILE_SIZE = 16
+        COLUMNS = 20
+        ROWS = 25
+        WIDTH = TILE_SIZE * COLUMNS * SCALE
+        HEIGHT = TILE_SIZE * ROWS * SCALE
         RESOLUTION = (WIDTH, HEIGHT)
         FPS = 60
 
@@ -12,8 +16,7 @@ class ColorSettings:
     BLUE = (0, 0, 255)
 
 class PlayerSettings:
-    WIDTH = 32
-    HEIGHT = 32
+    WIDTH, HEIGHT = ScreenSettings.TILE_SIZE, ScreenSettings.TILE_SIZE
     COLOR = ColorSettings.RED
     GRAVITY = 0.5
     JUMP_STRENGTH = -10
