@@ -1,6 +1,9 @@
 # ISSUES
 
 - [ ] Player can "bounce"
+- [ ] Movement/collision is a bit wonky
+- [ ] Player too small to see?
+- [ ] Player is moving right faster than they are moving left
 
 # IDEAS
 

@@ -3,9 +3,16 @@ from __future__ import annotations
 import pygame
 import sys
 
-from settings import ControllerSettings, ScreenSettings, PlayerSettings, TileSettings
-from sprites import Player
+from sprites import Enemy, Player
 from render import RenderManager
+from settings import(
+    AssetPaths,
+    ControllerSettings,
+    EnemySettings,
+    ScreenSettings,
+    PlayerSettings,
+    TileSettings
+)
 
 # A level manager will be added later to handle multiple levels
 # For now we will import this here and let game manager handle it directly
@@ -16,7 +23,6 @@ class CollisionManager:
     def __init__(self, current_map):
         """
         Initialize the collision manager by converting the tile map into solid rects.
-        
         Args:
             current_map (list of list of str): The tile map to be used for collision detection.
         """
@@ -25,10 +31,8 @@ class CollisionManager:
     def load_solid_rects(self, current_map):
         """
         Convert the tile map into a list of rects for collision detection.
-        
         Args:
             current_map (list of list of str): The tile map to be converted.
-            
         Returns:
             list of pygame.Rect: A list of rects representing solid tiles.
         """
@@ -41,6 +45,26 @@ class CollisionManager:
                     y = row_index * TileSettings.SIZE
                     rects.append(pygame.Rect(x, y, TileSettings.SIZE, TileSettings.SIZE))
         return rects
+
+    def resolve_horizontal(self, rect):
+        """
+        Check for horizontal collisions and adjust the rect's position accordingly.
+        Args:
+            rect (pygame.Rect): The rect to check for collisions and adjust.
+        Returns:
+            int: -1 if collided with a left wall, 1 if collided with a right wall, 0 if no collision.
+        """
+        for solid_rect in self.check_collision(rect):
+            # Only resolve horizontally if the tile is actually to the side of the player.
+            # Without this check, floor tiles would also trigger horizontal resolution.
+            if rect.centery > solid_rect.top and rect.centery < solid_rect.bottom:
+                if rect.right > solid_rect.left and rect.left < solid_rect.left:
+                    rect.right = solid_rect.left
+                    return 1  # hit a right wall
+                if rect.left < solid_rect.right and rect.right > solid_rect.right:
+                    rect.left = solid_rect.right
+                    return -1  # hit a left wall
+        return 0  # no collision
 
     def check_collision(self, rect):
         """
@@ -68,6 +92,8 @@ class GameManager:
         self.current_map = MAP_01
         self.collision = CollisionManager(self.current_map)
         self.player = Player(*PlayerSettings.INITIAL_POSITION, self)
+        self.enemies = pygame.sprite.Group()
+        self.enemies.add(Enemy(*EnemySettings.INITIAL_POSITION, self))
 
     def setup_controllers(self):
         """Initialize joysticks and store them in a list for later use."""
@@ -101,6 +127,10 @@ class GameManager:
             # Update and draw player
             self.player.update(self.joysticks)
             self.screen.blit(self.player.image, self.player.rect)
+
+            # Update and draw enemy
+            self.enemies.update()
+            self.enemies.draw(self.screen)
 
             pygame.display.flip()
             self.clock.tick(60)

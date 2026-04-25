@@ -24,8 +24,9 @@ class PlayerSettings:
     GRAVITY = 0.5
     JUMP_STRENGTH = -10
     INITIAL_VELOCITY_Y = 0
-    LEFT_SPEED = 5
-    RIGHT_SPEED = 5
+    LEFT_SPEED = 1.5
+    RIGHT_SPEED = 1.5
+    STOMP_BOUNCE = -7
 
     # Start in the bottom left corner of the map (adjusted for tile size)
     START_POS_X = 2 * TileSettings.SIZE
@@ -46,5 +47,15 @@ class ControllerSettings:
     START_BUTTON = 7
     SELECT_BUTTON = 6
 
+class EnemySettings:
+    WIDTH, HEIGHT = TileSettings.SIZE, TileSettings.SIZE
+    SPEED = 1
+    START_POS_X = 17 * TileSettings.SIZE
+    START_POS_Y = 23 * TileSettings.SIZE
+    INITIAL_POSITION = (START_POS_X, START_POS_Y)
+    INITIAL_DIRECTION = -1
+
 class AssetPaths:
     TILE_WALL = 'graphics/tiles/tile_0014.png'
+    PLAYER = 'graphics/player/tile_0098.png'
+    ENEMY = 'graphics/monsters/tile_0121.png'

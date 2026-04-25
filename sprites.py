@@ -1,11 +1,16 @@
 import pygame
-from settings import ScreenSettings, PlayerSettings, ControllerSettings
+from settings import (
+    AssetPaths,
+    ControllerSettings,
+    PlayerSettings,
+    ScreenSettings,
+    EnemySettings
+)
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, x, y, game):
         super().__init__()
-        self.image = pygame.Surface((PlayerSettings.WIDTH, PlayerSettings.HEIGHT))
-        self.image.fill((PlayerSettings.COLOR))
+        self.image = pygame.image.load(AssetPaths.PLAYER).convert_alpha()
         self.rect = self.image.get_rect()
         self.rect.topleft = (x, y)
         self.velocity_y = PlayerSettings.INITIAL_VELOCITY_Y
@@ -66,15 +71,7 @@ class Player(pygame.sprite.Sprite):
     def handle_horizontal_collision(self):
         """Check for horizontal collisions and adjust position accordingly."""
         self.on_ground = False # Reset on_ground before checking collisions
-
-        for solid_rect in self.game.collision.check_collision(self.rect):
-            # Only resolve horizontally if the tile is actually to the side of the player.
-            # Without this check, floor tiles would also trigger horizontal resolution.
-            if self.rect.centery > solid_rect.top and self.rect.centery < solid_rect.bottom:
-                if self.rect.right > solid_rect.left and self.rect.left < solid_rect.left:
-                    self.rect.right = solid_rect.left
-                if self.rect.left < solid_rect.right and self.rect.right > solid_rect.right:
-                    self.rect.left = solid_rect.right
+        self.game.collision.resolve_horizontal(self.rect)
 
     def handle_vertical_collision(self):
         """Check for vertical collisions and adjust position and velocity accordingly."""
@@ -87,6 +84,13 @@ class Player(pygame.sprite.Sprite):
                 self.rect.top = solid_rect.bottom
                 self.velocity_y = 0
 
+    def handle_stomp(self):
+        for enemy in self.game.enemies:
+            if self.velocity_y > 0 and self.rect.colliderect(enemy.rect):
+                if self.rect.bottom <= enemy.rect.centery:
+                    enemy.kill()
+                    self.velocity_y = PlayerSettings.STOMP_BOUNCE
+
     def update(self, joysticks):
         """
         Update the player's position based on input and handle collisions.
@@ -98,4 +102,27 @@ class Player(pygame.sprite.Sprite):
         self.apply_gravity()
         self.handle_horizontal_collision()
         self.handle_vertical_collision()
-        print(self.rect.x)
+        self.handle_stomp()
+
+class Enemy(pygame.sprite.Sprite):
+    """An enemy that moves back and forth, reversing direction when hitting a wall."""
+
+    def __init__(self, x, y, game):
+        super().__init__()
+        self.image = pygame.image.load(AssetPaths.ENEMY).convert_alpha()
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (x, y)
+        self.game = game
+        self.direction = EnemySettings.INITIAL_DIRECTION
+
+    def move(self):
+        self.rect.x += EnemySettings.SPEED * self.direction
+
+    def handle_horizontal_collision(self):
+        hit = self.game.collision.resolve_horizontal(self.rect)
+        if hit != 0:
+            self.direction *= -1
+
+    def update(self):
+        self.move()
+        self.handle_horizontal_collision()
