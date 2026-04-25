@@ -58,12 +58,20 @@ class Player(pygame.sprite.Sprite):
         # --- Gravity and vertical position ---
         self.velocity_y += PlayerSettings.GRAVITY
         self.rect.y += self.velocity_y
- 
+
+    def handle_collision(self):
         # Floor collision
         if self.rect.bottom >= ScreenSettings.HEIGHT:
             self.rect.bottom = ScreenSettings.HEIGHT
             self.velocity_y = PlayerSettings.INITIAL_VELOCITY_Y
             self.on_ground = True
 
+        # Wall collision
+        if self.rect.left < 0:
+            self.rect.left = 0
+        if self.rect.right > ScreenSettings.WIDTH:
+            self.rect.right = ScreenSettings.WIDTH
+
     def update(self, joysticks):
         self.get_input(joysticks)
+        self.handle_collision()
