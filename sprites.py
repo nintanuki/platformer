@@ -25,10 +25,27 @@ class Player(pygame.sprite.Sprite):
                 joystick_x = x
             jump_held |= joy.get_button(ControllerSettings.A_BUTTON)
  
+            # D-pad input
+            dpad_x, dpad_y = joy.get_hat(0) if joy else (0, 0)
+
         # --- Horizontal movement ---
-        if keys[pygame.K_LEFT] or joystick_x < 0:
+        # Gather all horizontal input into one variable
+        moving_left = (
+            keys[pygame.K_LEFT]
+            or keys[pygame.K_a]
+            or joystick_x < -0.5          # analog stick (with deadzone)
+            or dpad_x < 0                  # d-pad
+        )
+        moving_right = (
+            keys[pygame.K_RIGHT]
+            or keys[pygame.K_d]
+            or joystick_x > 0.5            # analog stick (with deadzone)
+            or dpad_x > 0                  # d-pad
+        )
+
+        if moving_left:
             self.rect.x -= PlayerSettings.LEFT_SPEED
-        if keys[pygame.K_RIGHT] or joystick_x > 0:
+        if moving_right:
             self.rect.x += PlayerSettings.RIGHT_SPEED
  
         # --- Jump ---
