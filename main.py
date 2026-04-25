@@ -3,10 +3,58 @@ from __future__ import annotations
 import pygame
 import sys
 
-from settings import ControllerSettings, ScreenSettings, PlayerSettings
+from settings import ControllerSettings, ScreenSettings, PlayerSettings, TileSettings
 from sprites import Player
 from render import RenderManager
+
+# A level manager will be added later to handle multiple levels
+# For now we will import this here and let game manager handle it directly
 from tile_maps import MAP_01
+
+class CollisionManager:
+    """Manages collision detection between the player and the tile map."""
+    def __init__(self, current_map):
+        """
+        Initialize the collision manager by converting the tile map into solid rects.
+        
+        Args:
+            current_map (list of list of str): The tile map to be used for collision detection.
+        """
+        self.solid_rects = self.load_solid_rects(current_map) # Convert tile map to rects for collision detection
+
+    def load_solid_rects(self, current_map):
+        """
+        Convert the tile map into a list of rects for collision detection.
+        
+        Args:
+            current_map (list of list of str): The tile map to be converted.
+            
+        Returns:
+            list of pygame.Rect: A list of rects representing solid tiles.
+        """
+        rects = [] # Create an empty list to hold the rects for solid tiles
+        # Loop through the tile map and create rects for solid tiles
+        for row_index, row in enumerate(current_map):
+            for col_index, tile in enumerate(row):
+                if tile == 'x':
+                    x = col_index * TileSettings.SIZE
+                    y = row_index * TileSettings.SIZE
+                    rects.append(pygame.Rect(x, y, TileSettings.SIZE, TileSettings.SIZE))
+        return rects
+
+    def check_collision(self, rect):
+        """
+        Check if the given rect collides with any solid tile rects.
+
+        Args:
+            rect (pygame.Rect): The rect to check for collisions.
+
+        Returns:
+            list of pygame.Rect: A list of rects that the given rect collides with.
+        """
+
+        # Return a list of all solid rects that collide with the given rect
+        return [solid_rect for solid_rect in self.solid_rects if rect.colliderect(solid_rect)]
 
 class GameManager:
     def __init__(self):
@@ -17,7 +65,9 @@ class GameManager:
         pygame.display.set_caption("Platformer")
 
         self.render_manager = RenderManager(self.screen)
-        self.player = Player(*PlayerSettings.INITIAL_POSITION)
+        self.current_map = MAP_01
+        self.collision = CollisionManager(self.current_map)
+        self.player = Player(*PlayerSettings.INITIAL_POSITION, self)
 
     def setup_controllers(self):
         """Initialize joysticks and store them in a list for later use."""
@@ -43,14 +93,14 @@ class GameManager:
                     if event.button == ControllerSettings.SELECT_BUTTON:
                         pygame.display.toggle_fullscreen()
 
-            self.screen.fill((0, 0, 0))
+            self.screen.fill(ScreenSettings.BACKGROUND_COLOR)
+
+            # Draw the map
+            self.render_manager.draw_map(MAP_01)
 
             # Update and draw player
             self.player.update(self.joysticks)
             self.screen.blit(self.player.image, self.player.rect)
-
-            # Draw the map
-            self.render_manager.draw_map(MAP_01)
 
             pygame.display.flip()
             self.clock.tick(60)

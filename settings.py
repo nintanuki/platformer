@@ -1,3 +1,10 @@
+class ColorSettings:
+    BLACK = (0, 0, 0)
+    WHITE = (255, 255, 255)
+    RED = (255, 0, 0)
+    GREEN = (0, 255, 0)
+    BLUE = (0, 0, 255)
+
 class TileSettings:
     SIZE = 16
     COLUMNS = 20
@@ -9,13 +16,7 @@ class ScreenSettings:
     HEIGHT = TileSettings.SIZE * TileSettings.ROWS * SCALE
     RESOLUTION = (WIDTH, HEIGHT)
     FPS = 60
-
-class ColorSettings:
-    BLACK = (0, 0, 0)
-    WHITE = (255, 255, 255)
-    RED = (255, 0, 0)
-    GREEN = (0, 255, 0)
-    BLUE = (0, 0, 255)
+    BACKGROUND_COLOR = ColorSettings.BLACK
 
 class PlayerSettings:
     WIDTH, HEIGHT = TileSettings.SIZE, TileSettings.SIZE
@@ -26,7 +27,8 @@ class PlayerSettings:
     LEFT_SPEED = 5
     RIGHT_SPEED = 5
 
-    START_POS_X = 1 * TileSettings.SIZE
+    # Start in the bottom left corner of the map (adjusted for tile size)
+    START_POS_X = 2 * TileSettings.SIZE
     START_POS_Y = 23 * TileSettings.SIZE
     INITIAL_POSITION = (START_POS_X, START_POS_Y)
 
