@@ -16,39 +16,46 @@ from settings import(
 
 # A level manager will be added later to handle multiple levels
 # For now we will import this here and let game manager handle it directly
-from tile_maps import MAP_01
+from tile_maps import MAP_01, TILE_LEGEND
 
 class CollisionManager:
     """Manages collision detection between the player and the tile map."""
     def __init__(self, current_map):
         """
         Initialize the collision manager by converting the tile map into solid rects.
+        
         Args:
             current_map (list of list of str): The tile map to be used for collision detection.
         """
-        self.solid_rects = self.load_solid_rects(current_map) # Convert tile map to rects for collision detection
-
+        # Build a set of symbols that are solid, derived from the legend.
+        # This means adding a new solid tile only ever requires a change in tile_maps.py.
+        self.solid_symbols = {sym for sym, data in TILE_LEGEND.items() if data['solid']}
+        self.solid_rects = self.load_solid_rects(current_map)
+ 
     def load_solid_rects(self, current_map):
         """
         Convert the tile map into a list of rects for collision detection.
+
         Args:
             current_map (list of list of str): The tile map to be converted.
         Returns:
             list of pygame.Rect: A list of rects representing solid tiles.
         """
+        
         rects = [] # Create an empty list to hold the rects for solid tiles
         # Loop through the tile map and create rects for solid tiles
         for row_index, row in enumerate(current_map):
             for col_index, tile in enumerate(row):
-                if tile == 'x':
+                if tile in self.solid_symbols:
                     x = col_index * TileSettings.SIZE
                     y = row_index * TileSettings.SIZE
                     rects.append(pygame.Rect(x, y, TileSettings.SIZE, TileSettings.SIZE))
         return rects
-
+ 
     def resolve_horizontal(self, rect):
         """
         Check for horizontal collisions and adjust the rect's position accordingly.
+
         Args:
             rect (pygame.Rect): The rect to check for collisions and adjust.
         Returns:
@@ -65,19 +72,17 @@ class CollisionManager:
                     rect.left = solid_rect.right
                     return -1  # hit a left wall
         return 0  # no collision
-
+ 
     def check_collision(self, rect):
         """
         Check if the given rect collides with any solid tile rects.
 
         Args:
             rect (pygame.Rect): The rect to check for collisions.
-
         Returns:
             list of pygame.Rect: A list of rects that the given rect collides with.
         """
-
-        # Return a list of all solid rects that collide with the given rect
+        # Return a list of all solid rects that collide with the given rect.
         return [solid_rect for solid_rect in self.solid_rects if rect.colliderect(solid_rect)]
 
 class GameManager:

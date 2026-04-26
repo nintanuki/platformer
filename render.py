@@ -1,20 +1,48 @@
 import pygame
-from settings import AssetPaths, TileSettings, ColorSettings
- 
+from settings import AssetPaths, TileSettings
+from tile_maps import TILE_LEGEND
+
+SHEET_COLS = 22
+SHEET_TILE = 16   # native size of each tile in the sheet
+
+
+def load_tiles(path: str) -> list[pygame.Surface]:
+    """
+    Slice every 16×16 cell from the terrain sheet and return a flat list,
+    indexed left→right then top→bottom. Tiles are scaled up to TileSettings.SIZE
+    so they match the rest of the game grid.
+    """
+    sheet = pygame.image.load(path).convert_alpha()
+    sheet_rows = sheet.get_height() // SHEET_TILE
+    tiles = []
+    for row in range(sheet_rows):
+        for col in range(SHEET_COLS):
+            raw = sheet.subsurface((col * SHEET_TILE, row * SHEET_TILE, SHEET_TILE, SHEET_TILE))
+            scaled = pygame.transform.scale(raw, (TileSettings.SIZE, TileSettings.SIZE))
+            tiles.append(scaled)
+    return tiles
+
+
 class RenderManager:
     def __init__(self, screen):
         self.screen = screen
-        
-        # The terrain sheet is 16x16 tiles — slice out the top-left stone tile
-        # then scale it up to 32x32 to match our tile grid
-        sheet = pygame.image.load(AssetPaths.TILE_WALL).convert()
-        self.tile_wall = sheet.subsurface((288, 80, TileSettings.SIZE, TileSettings.SIZE))
- 
+
+        # Load every tile from the sheet once at startup
+        all_tiles = load_tiles(AssetPaths.TILE_WALL)
+
+        # Build a surface lookup keyed by map symbol using the legend.
+        # Both solid and passable tiles get drawn — solid is only a collision concern.
+        self.tile_surfaces = {
+            symbol: all_tiles[data['index']]
+            for symbol, data in TILE_LEGEND.items()
+        }
+
     def draw_map(self, current_map):
-        """Draw the tile map based on the current map layout."""
+        """Draw the tile map — any symbol found in TILE_LEGEND gets drawn."""
         for row_index, row in enumerate(current_map):
-            for col_index, tile in enumerate(row):
-                if tile == 'x':
+            for col_index, symbol in enumerate(row):
+                surface = self.tile_surfaces.get(symbol)
+                if surface:
                     x = col_index * TileSettings.SIZE
                     y = row_index * TileSettings.SIZE
-                    self.screen.blit(self.tile_wall, (x, y))
+                    self.screen.blit(surface, (x, y))

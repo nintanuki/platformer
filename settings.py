@@ -6,9 +6,9 @@ class ColorSettings:
     BLUE = (0, 0, 255)
 
 class TileSettings:
-    SIZE = 32
-    COLUMNS = 10
-    ROWS = 15
+    SIZE = 16
+    COLUMNS = 20
+    ROWS = 30
 
 class ScreenSettings:
     WIDTH = TileSettings.SIZE * TileSettings.COLUMNS   # 320
