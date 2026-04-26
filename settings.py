@@ -16,6 +16,7 @@ class ScreenSettings:
     RESOLUTION = (WIDTH, HEIGHT)
     FPS = 60
     BACKGROUND_COLOR = ColorSettings.BLACK
+    CRT_ALPHA_RANGE: tuple[int, int] = (75, 90)
 
 class PlayerSettings:
     WIDTH = TileSettings.SIZE
@@ -68,3 +69,4 @@ class AssetPaths:
     PLAYER_JUMP = 'graphics/Main Characters/Ninja Frog/Jump (32x32).png'
     PLAYER_FALL = 'graphics/Main Characters/Ninja Frog/Fall (32x32).png'
     ENEMY = 'graphics/Enemies/Snail/Walk (38x24).png'
+    TV = 'graphics/Other/TV.png'

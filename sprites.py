@@ -53,6 +53,10 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.topleft = (x, y)
 
+        # Float accumulator for horizontal position so fractional speeds (e.g. 1.5 px/frame)
+        # aren't lost to integer truncation — which made left and right feel different.
+        self.pos_x = float(x)
+
     # ------------------------------------------------------------------
     # Input
     # ------------------------------------------------------------------
@@ -89,12 +93,16 @@ class Player(pygame.sprite.Sprite):
             or joystick_x > 0.5 or dpad_x > 0
         )
 
+        # Move the player based on input.
+        # Mutates self.pos_x instead of self.rect.x directly
+        # to allow for fractional movement speeds without losing precision.
         if moving_left and not moving_right:
-            self.rect.x -= PlayerSettings.LEFT_SPEED
+            self.pos_x -= PlayerSettings.LEFT_SPEED
             self.facing_right = False
         elif moving_right and not moving_left:
-            self.rect.x += PlayerSettings.RIGHT_SPEED
+            self.pos_x += PlayerSettings.RIGHT_SPEED
             self.facing_right = True
+        self.rect.x = int(self.pos_x) # Update rect position based on float accumulator
 
         if (keys[pygame.K_SPACE] or jump_pressed) and self.on_ground:
             self.velocity_y = PlayerSettings.JUMP_STRENGTH
@@ -114,6 +122,8 @@ class Player(pygame.sprite.Sprite):
     def handle_horizontal_collision(self):
         """Check for horizontal collisions and adjust the rect's position accordingly."""
         self.game.collision.resolve_horizontal(self.rect)
+        # Keep the float accumulator in sync so it doesn't fight the corrected rect position.
+        self.pos_x = float(self.rect.x)
 
     def handle_vertical_collision(self):
         """Check for vertical collisions and adjust the rect's position and velocity accordingly."""
@@ -173,8 +183,8 @@ class Player(pygame.sprite.Sprite):
     def update(self, joysticks):
         """Update the player's state based on input, physics, and animation."""
         moving_left, moving_right = self.get_input(joysticks)
+        self.handle_horizontal_collision()  # resolve X before touching Y
         self.apply_gravity()
-        self.handle_horizontal_collision()
         self.handle_vertical_collision()
         self.handle_stomp()
         self.animate(moving_left, moving_right)

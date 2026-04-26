@@ -5,6 +5,7 @@ import sys
 
 from sprites import Enemy, Player
 from render import RenderManager
+from crt import CRT
 from settings import(
     AssetPaths,
     ControllerSettings,
@@ -99,6 +100,7 @@ class GameManager:
         self.player = Player(*PlayerSettings.INITIAL_POSITION, self)
         self.enemies = pygame.sprite.Group()
         self.enemies.add(Enemy(*EnemySettings.INITIAL_POSITION, self))
+        self.crt = CRT(self.screen)
 
     def setup_controllers(self):
         """Initialize joysticks and store them in a list for later use."""
@@ -136,6 +138,8 @@ class GameManager:
             # Update and draw enemy
             self.enemies.update()
             self.enemies.draw(self.screen)
+
+            self.crt.draw() 
 
             pygame.display.flip()
             self.clock.tick(60)
