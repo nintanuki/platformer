@@ -6,7 +6,7 @@ class ColorSettings:
     BLUE = (0, 0, 255)
 
 class TileSettings:
-    SIZE = 16
+    SIZE = 32
     COLUMNS = 20
     ROWS = 25
 
@@ -56,6 +56,6 @@ class EnemySettings:
     INITIAL_DIRECTION = -1
 
 class AssetPaths:
-    TILE_WALL = 'graphics/tiles/tile_0014.png'
-    PLAYER = 'graphics/player/tile_0098.png'
-    ENEMY = 'graphics/monsters/tile_0121.png'
+    TILE_WALL = 'graphics/Main Characters/Ninja Frog/Jump (32x32).png'
+    PLAYER = 'graphics/Main Characters/Ninja Frog/Jump (32x32).png'
+    ENEMY = 'graphics/Main Characters/Ninja Frog/Jump (32x32).png'
