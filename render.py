@@ -4,7 +4,11 @@ from settings import AssetPaths, TileSettings, ColorSettings
 class RenderManager:
     def __init__(self, screen):
         self.screen = screen
-        self.tile_wall = pygame.image.load(AssetPaths.TILE_WALL).convert()
+        
+        # The terrain sheet is 16x16 tiles — slice out the top-left stone tile
+        # then scale it up to 32x32 to match our tile grid
+        sheet = pygame.image.load(AssetPaths.TILE_WALL).convert()
+        self.tile_wall = sheet.subsurface((288, 80, TileSettings.SIZE, TileSettings.SIZE))
  
     def draw_map(self, current_map):
         """Draw the tile map based on the current map layout."""

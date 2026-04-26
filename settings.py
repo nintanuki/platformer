@@ -7,19 +7,19 @@ class ColorSettings:
 
 class TileSettings:
     SIZE = 32
-    COLUMNS = 20
-    ROWS = 25
+    COLUMNS = 10
+    ROWS = 15
 
 class ScreenSettings:
-    SCALE = 1 # in case we want to use 32x32 sprites later, just change this to 2
-    WIDTH = TileSettings.SIZE * TileSettings.COLUMNS * SCALE
-    HEIGHT = TileSettings.SIZE * TileSettings.ROWS * SCALE
+    WIDTH = TileSettings.SIZE * TileSettings.COLUMNS   # 320
+    HEIGHT = TileSettings.SIZE * TileSettings.ROWS     # 480
     RESOLUTION = (WIDTH, HEIGHT)
     FPS = 60
     BACKGROUND_COLOR = ColorSettings.BLACK
 
 class PlayerSettings:
-    WIDTH, HEIGHT = TileSettings.SIZE, TileSettings.SIZE
+    WIDTH = TileSettings.SIZE
+    HEIGHT = TileSettings.SIZE
     COLOR = ColorSettings.RED
     GRAVITY = 0.5
     JUMP_STRENGTH = -10
@@ -30,8 +30,10 @@ class PlayerSettings:
 
     # Start in the bottom left corner of the map (adjusted for tile size)
     START_POS_X = 2 * TileSettings.SIZE
-    START_POS_Y = 23 * TileSettings.SIZE
+    START_POS_Y = 12 * TileSettings.SIZE
     INITIAL_POSITION = (START_POS_X, START_POS_Y)
+
+    ANIMATION_SPEED = 0.15
 
 class ControllerSettings:
     DPAD_INDEX = 0 # Assuming the first hat is the d-pad
@@ -48,14 +50,21 @@ class ControllerSettings:
     SELECT_BUTTON = 6
 
 class EnemySettings:
-    WIDTH, HEIGHT = TileSettings.SIZE, TileSettings.SIZE
+    WIDTH = 38
+    HEIGHT = 24
     SPEED = 1
-    START_POS_X = 17 * TileSettings.SIZE
-    START_POS_Y = 23 * TileSettings.SIZE
+    START_POS_X = 7 * TileSettings.SIZE
+    START_POS_Y = 13 * TileSettings.SIZE
     INITIAL_POSITION = (START_POS_X, START_POS_Y)
     INITIAL_DIRECTION = -1
+    ANIMATION_SPEED = 0.1
+    INITIAL_VELOCITY_Y = 0
+    GRAVITY = 0.5
 
 class AssetPaths:
-    TILE_WALL = 'graphics/Main Characters/Ninja Frog/Jump (32x32).png'
-    PLAYER = 'graphics/Main Characters/Ninja Frog/Jump (32x32).png'
-    ENEMY = 'graphics/Main Characters/Ninja Frog/Jump (32x32).png'
+    TILE_WALL = 'graphics/Terrain/Terrain (16x16).png'
+    PLAYER_IDLE = 'graphics/Main Characters/Ninja Frog/Idle (32x32).png'
+    PLAYER_RUN = 'graphics/Main Characters/Ninja Frog/Run (32x32).png'
+    PLAYER_JUMP = 'graphics/Main Characters/Ninja Frog/Jump (32x32).png'
+    PLAYER_FALL = 'graphics/Main Characters/Ninja Frog/Fall (32x32).png'
+    ENEMY = 'graphics/Enemies/Snail/Walk (38x24).png'
