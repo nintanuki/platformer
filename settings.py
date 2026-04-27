@@ -11,7 +11,10 @@ class TileSettings:
     ROWS = 30
 
 class ScreenSettings:
-    WIDTH = TileSettings.SIZE * TileSettings.COLUMNS   # 320
+    # screen width is 1.5x the map width so that an entire row of tiles
+    # is visible plus, this means the camera only moves vertically as the play climbs
+    # but the player can see all of the level horizontally at all times
+    WIDTH = TileSettings.SIZE * TileSettings.COLUMNS * 3 // 2   # 320 * 1.5 = 480
     HEIGHT = TileSettings.SIZE * TileSettings.ROWS     # 480
     RESOLUTION = (WIDTH, HEIGHT)
     FPS = 60

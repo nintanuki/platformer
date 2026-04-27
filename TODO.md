@@ -3,16 +3,17 @@
 ## ISSUES
 
 - [ ] Player can "bounce"
-- [ ] Movement/collision is a bit wonky, teleports when colliding with block horizontally and can wall jump (maybe that can be a feature later but it should be refined)
-- [ ] Player is moving right faster than they are moving left (now it's the opposite problem)
+- [ ] Player phasing through and flying up walls
+- [ ] Player starts out by "falling" onto the world
 
 ## Add
 
-- [ ] Run button
-- [ ] Enemy collision
+- [ ] Enemy collision (added enemy death on jump, add player death horizontally)
 - [ ] Full level (platforms, game over screen)
 - [ ] Sound
 - [ ] Camera that zooms in and follows player
+- [ ] Background
+- [ ] Exit door
 
 ## IDEAS
 
