@@ -55,7 +55,7 @@ class CameraSettings:
     # Multiplier applied to the world view when zoom is enabled. 2.0 means the
     # visible window is half the screen's width/height in world space, then
     # scaled up 2x to fill the screen.
-    ZOOM_FACTOR = 2.0
+    ZOOM_FACTOR = 1.5
     # Whether the game starts in the zoomed-in gameplay view (True) or the
     # zoomed-out debug view that shows the entire level (False).
     ZOOM_ENABLED_DEFAULT = True

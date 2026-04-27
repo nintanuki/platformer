@@ -37,12 +37,14 @@ class RenderManager:
             for symbol, data in TILE_LEGEND.items()
         }
 
-    def draw_map(self, current_map):
-        """Draw the tile map — any symbol found in TILE_LEGEND gets drawn."""
+    def draw_map(self, current_map, camera, surface):
+        """Draw the tile map using the camera view. Draws to the given surface (camera or screen)."""
+        view = camera.get_view_rect()
         for row_index, row in enumerate(current_map):
             for col_index, symbol in enumerate(row):
-                surface = self.tile_surfaces.get(symbol)
-                if surface:
-                    x = col_index * TileSettings.SIZE
-                    y = row_index * TileSettings.SIZE
-                    self.screen.blit(surface, (x, y))
+                tile = self.tile_surfaces.get(symbol)
+                if tile:
+                    x = col_index * TileSettings.SIZE - view.x
+                    y = row_index * TileSettings.SIZE - view.y
+                    if 0 <= x < view.width and 0 <= y < view.height:
+                        surface.blit(tile, (x, y))

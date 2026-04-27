@@ -5,6 +5,7 @@ import sys
 
 from sprites import Enemy, Player
 from render import RenderManager
+from camera import Camera
 from crt import CRT
 from settings import(
     AssetPaths,
@@ -101,6 +102,7 @@ class GameManager:
         self.enemies = pygame.sprite.Group()
         self.enemies.add(Enemy(*EnemySettings.INITIAL_POSITION, self))
         self.crt = CRT(self.screen)
+        self.camera = Camera(len(self.current_map[0]), len(self.current_map))
 
     def setup_controllers(self):
         """Initialize joysticks and store them in a list for later use."""
@@ -122,24 +124,44 @@ class GameManager:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_F11:
                         pygame.display.toggle_fullscreen()
+                    if event.key == pygame.K_z:
+                        self.camera.toggle_zoom()
                 if event.type == pygame.JOYBUTTONDOWN:
                     if event.button == ControllerSettings.SELECT_BUTTON:
                         pygame.display.toggle_fullscreen()
 
-            self.screen.fill(ScreenSettings.BACKGROUND_COLOR)
+            # Update camera to follow player
+            self.camera.update(self.player.rect)
 
-            # Draw the map
-            self.render_manager.draw_map(MAP_01)
+            # --- Camera rendering ---
+            if self.camera.zoom_enabled:
+                cam_surface = pygame.Surface((self.camera.view_w, self.camera.view_h))
+            else:
+                cam_surface = self.screen
+
+            # Fill background
+            cam_surface.fill(ScreenSettings.BACKGROUND_COLOR)
+
+            # Draw the map to the correct surface
+            self.render_manager.draw_map(MAP_01, self.camera, cam_surface)
 
             # Update and draw player
             self.player.update(self.joysticks)
-            self.screen.blit(self.player.image, self.player.rect)
+            player_draw_rect = self.player.rect.move(-self.camera.x, -self.camera.y)
+            cam_surface.blit(self.player.image, player_draw_rect)
 
             # Update and draw enemy
             self.enemies.update()
-            self.enemies.draw(self.screen)
+            for enemy in self.enemies:
+                enemy_draw_rect = enemy.rect.move(-self.camera.x, -self.camera.y)
+                cam_surface.blit(enemy.image, enemy_draw_rect)
 
-            # self.crt.draw() 
+            # If zoomed, scale camera surface to screen
+            if self.camera.zoom_enabled:
+                scaled = pygame.transform.scale(cam_surface, (self.camera.screen_width, self.camera.screen_height))
+                self.screen.blit(scaled, (0, 0))
+
+            self.crt.draw() 
 
             pygame.display.flip()
             self.clock.tick(60)
