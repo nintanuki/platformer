@@ -27,6 +27,7 @@ class PlayerSettings:
     INITIAL_VELOCITY_Y = 0
     LEFT_SPEED = 1.5
     RIGHT_SPEED = 1.5
+    RUN_SPEED = 2.8
     STOMP_BOUNCE = -7
 
     # Start in the bottom left corner of the map (adjusted for tile size)

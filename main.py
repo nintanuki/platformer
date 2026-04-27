@@ -139,7 +139,7 @@ class GameManager:
             self.enemies.update()
             self.enemies.draw(self.screen)
 
-            self.crt.draw() 
+            # self.crt.draw() 
 
             pygame.display.flip()
             self.clock.tick(60)

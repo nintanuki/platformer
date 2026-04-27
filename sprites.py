@@ -38,6 +38,9 @@ class Player(pygame.sprite.Sprite):
             'jump': load_frames(AssetPaths.PLAYER_JUMP, 32, 32),
             'fall': load_frames(AssetPaths.PLAYER_FALL, 32, 32),
         }
+        # Debug: print number of frames loaded for each animation
+        for anim, frames in self.animations.items():
+            print(f"Loaded {len(frames)} frames for animation '{anim}' from {getattr(AssetPaths, 'PLAYER_' + anim.upper())}")
 
         # --- Animation state ---
         self.current_anim = 'idle'
@@ -53,9 +56,9 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.topleft = (x, y)
 
-        # Float accumulator for horizontal position so fractional speeds (e.g. 1.5 px/frame)
-        # aren't lost to integer truncation — which made left and right feel different.
+        # Float accumulators for position so fractional speeds aren't lost to truncation
         self.pos_x = float(x)
+        self.pos_y = float(y)
 
     # ------------------------------------------------------------------
     # Input
@@ -67,7 +70,7 @@ class Player(pygame.sprite.Sprite):
         Args:
             joysticks (list of pygame.joystick.Joystick): List of initialized joystick objects to check for input.
         Returns:
-            tuple: (moving_left, moving_right) booleans indicating movement direction.
+            tuple: (moving_left, moving_right, running) booleans indicating movement direction and run state.
         """
         keys = pygame.key.get_pressed()
 
@@ -75,6 +78,7 @@ class Player(pygame.sprite.Sprite):
         jump_pressed = False
         dpad_x = 0
         dpad_y = 0
+        run_pressed = False
 
         # Check all joysticks for input (supports multiple controllers)
         for joy in joysticks:
@@ -83,6 +87,7 @@ class Player(pygame.sprite.Sprite):
                 joystick_x = x
             jump_pressed |= joy.get_button(ControllerSettings.A_BUTTON)
             dpad_x, dpad_y = joy.get_hat(0)
+            run_pressed |= joy.get_button(ControllerSettings.X_BUTTON)
 
         moving_left = (
             keys[pygame.K_LEFT] or keys[pygame.K_a]
@@ -93,22 +98,27 @@ class Player(pygame.sprite.Sprite):
             or joystick_x > 0.5 or dpad_x > 0
         )
 
+        # Run button: X on controller or F on keyboard
+        run_pressed |= keys[pygame.K_f]
+
         # Move the player based on input.
         # Mutates self.pos_x instead of self.rect.x directly
         # to allow for fractional movement speeds without losing precision.
+        speed_left = PlayerSettings.RUN_SPEED if run_pressed else PlayerSettings.LEFT_SPEED
+        speed_right = PlayerSettings.RUN_SPEED if run_pressed else PlayerSettings.RIGHT_SPEED
         if moving_left and not moving_right:
-            self.pos_x -= PlayerSettings.LEFT_SPEED
+            self.pos_x -= speed_left
             self.facing_right = False
         elif moving_right and not moving_left:
-            self.pos_x += PlayerSettings.RIGHT_SPEED
+            self.pos_x += speed_right
             self.facing_right = True
-        self.rect.x = int(self.pos_x) # Update rect position based on float accumulator
+        self.rect.x = int(round(self.pos_x))  # Use round to avoid left/right bias
 
         if (keys[pygame.K_SPACE] or jump_pressed) and self.on_ground:
             self.velocity_y = PlayerSettings.JUMP_STRENGTH
             self.on_ground = False
 
-        return moving_left, moving_right # Return movement state for animation purposes
+        return moving_left, moving_right, run_pressed # Return movement state for animation purposes
 
     # ------------------------------------------------------------------
     # Physics
@@ -117,12 +127,13 @@ class Player(pygame.sprite.Sprite):
     def apply_gravity(self):
         """Apply gravity to the player's vertical velocity and update the rect's y position."""
         self.velocity_y += PlayerSettings.GRAVITY
-        self.rect.y += self.velocity_y # VS Code's auto-formatting is weird about this line.
+        self.pos_y += self.velocity_y
+        self.rect.y = int(round(self.pos_y))
 
     def handle_horizontal_collision(self):
         """Check for horizontal collisions and adjust the rect's position accordingly."""
         self.game.collision.resolve_horizontal(self.rect)
-        # Keep the float accumulator in sync so it doesn't fight the corrected rect position.
+        # Always sync float accumulator to rect.x after collision resolution
         self.pos_x = float(self.rect.x)
 
     def handle_vertical_collision(self):
@@ -133,9 +144,26 @@ class Player(pygame.sprite.Sprite):
                 self.rect.bottom = solid_rect.top
                 self.velocity_y = 0
                 self.on_ground = True
+                self.pos_y = float(self.rect.y)
             elif self.velocity_y < 0 and self.rect.top < solid_rect.bottom:
                 self.rect.top = solid_rect.bottom
                 self.velocity_y = 0
+                self.pos_y = float(self.rect.y)
+        # Additional check: probe 1px below for ground.
+        # This must run whenever we're not moving upward, NOT just when velocity_y == 0.
+        # Gravity adds 0.5 to velocity_y every frame, so by the time we get here while
+        # standing still, velocity_y is already > 0 and the previous `== 0` gate would
+        # skip this branch -- leaving on_ground stuck at False and the animator showing
+        # 'fall' instead of 'idle'/'run'. We also zero out velocity_y so gravity doesn't
+        # silently accumulate frame after frame while grounded.
+        if not self.on_ground and self.velocity_y >= 0:
+            test_rect = self.rect.move(0, 1)
+            for solid_rect in self.game.collision.check_collision(test_rect):
+                if self.rect.bottom <= solid_rect.top + 1:
+                    self.on_ground = True
+                    self.velocity_y = 0
+                    self.pos_y = float(self.rect.y)
+                    break
 
     def handle_stomp(self):
         """Check for stomping on enemies and apply bounce effect."""
@@ -149,17 +177,17 @@ class Player(pygame.sprite.Sprite):
     # Animation
     # ------------------------------------------------------------------
 
-    def get_animation_state(self, moving_left, moving_right):
+    def get_animation_state(self, moving_left, moving_right, running):
         """Pick the right animation based on physics and movement."""
         if not self.on_ground:
             return 'jump' if self.velocity_y < 0 else 'fall'
         if moving_left or moving_right:
-            return 'run'
+            return 'run'  # Always use 'run' animation for any movement
         return 'idle'
 
-    def animate(self, moving_left, moving_right):
+    def animate(self, moving_left, moving_right, running):
         """Update the player's animation based on movement and physics state."""
-        new_anim = self.get_animation_state(moving_left, moving_right)
+        new_anim = self.get_animation_state(moving_left, moving_right, running)
 
         # Reset frame index when switching animations
         if new_anim != self.current_anim:
@@ -182,12 +210,14 @@ class Player(pygame.sprite.Sprite):
 
     def update(self, joysticks):
         """Update the player's state based on input, physics, and animation."""
-        moving_left, moving_right = self.get_input(joysticks)
+        moving_left, moving_right, running = self.get_input(joysticks)
         self.handle_horizontal_collision()  # resolve X before touching Y
+        # After collision, always sync float accumulator to avoid drift
+        self.pos_x = float(self.rect.x)
         self.apply_gravity()
         self.handle_vertical_collision()
         self.handle_stomp()
-        self.animate(moving_left, moving_right)
+        self.animate(moving_left, moving_right, running)
 
 
 class Enemy(pygame.sprite.Sprite):
@@ -212,10 +242,13 @@ class Enemy(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.topleft = (x, y)
         self.game = game
+        # Float accumulator for vertical position
+        self.pos_y = float(y)
 
     def apply_gravity(self):
         self.velocity_y += EnemySettings.GRAVITY
-        self.rect.y += self.velocity_y
+        self.pos_y += self.velocity_y
+        self.rect.y = int(round(self.pos_y))
 
     def move(self):
         self.rect.x += EnemySettings.SPEED * self.direction
@@ -230,6 +263,7 @@ class Enemy(pygame.sprite.Sprite):
             if self.velocity_y > 0 and self.rect.bottom > solid_rect.top:
                 self.rect.bottom = solid_rect.top
                 self.velocity_y = 0
+                self.pos_y = float(self.rect.y)
 
     def animate(self):
         self.frame_index += EnemySettings.ANIMATION_SPEED
